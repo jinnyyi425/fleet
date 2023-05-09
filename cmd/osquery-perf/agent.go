@@ -1319,15 +1319,3 @@ func main() {
 	fmt.Println("Agents running. Kill with C-c.")
 	<-make(chan struct{})
 }
-
-// numbers plus capital letters without I, L, O for readability
-const serialLetters = "0123456789ABCDEFGHJKMNPQRSTUVWXYZ"
-
-func randSerial() string {
-	b := make([]byte, 12)
-	for i := range b {
-		//nolint:gosec // not used for crypto, only to generate random serial for testing
-		b[i] = serialLetters[rand.Intn(len(serialLetters))]
-	}
-	return string(b)
-}

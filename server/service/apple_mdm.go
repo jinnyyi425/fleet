@@ -2396,11 +2396,11 @@ func ensureFleetdConfig(ctx context.Context, ds fleet.Datastore, logger kitlog.L
 	for _, es := range enrollSecrets {
 		if es.Secret == "" {
 			if globalSecret == "" {
-				logger.Log("err", "team_id %d doesn't have an enroll secret, and couldn't find a global enroll secret, skipping the creation of a com.fleetdm.fleetd.config profile")
+				logger.Log("err", "team doesn't have an enroll secret, and couldn't find a global enroll secret, skipping the creation of a com.fleetdm.fleetd.config profile", "team_id", es.TeamID)
 				continue
 			}
 
-			logger.Log("err", "team_id %d doesn't have an enroll secret, using a global enroll secret")
+			logger.Log("err", "team doesn't have an enroll secret, using a global enroll secret", "team_id", es.TeamID)
 			es.Secret = globalSecret
 		}
 
@@ -2616,5 +2616,6 @@ func ReconcileProfiles(
 	if err := ds.BulkUpsertMDMAppleHostProfiles(ctx, failed); err != nil {
 		return ctxerr.Wrap(ctx, err, "reverting status of failed profiles")
 	}
+
 	return nil
 }

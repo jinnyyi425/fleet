@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 
 	"github.com/fleetdm/fleet/v4/server/config"
@@ -27,6 +28,7 @@ import (
 	nanomdm_log "github.com/micromdm/nanomdm/log"
 	nanomdm_service "github.com/micromdm/nanomdm/service"
 	"github.com/micromdm/nanomdm/service/certauth"
+	"github.com/micromdm/nanomdm/service/dump"
 	"github.com/micromdm/nanomdm/service/multi"
 	"github.com/micromdm/nanomdm/service/nanomdm"
 	nanomdm_storage "github.com/micromdm/nanomdm/storage"
@@ -829,6 +831,12 @@ func registerMDM(
 	}
 	mdmLogger := NewNanoMDMLogger(kitlog.With(logger, "component", "http-mdm-apple-mdm"))
 
+	dumpFile, err := os.Create("/Users/luk/mdm-dump/dump.txt")
+	if err != nil {
+		panic(err)
+	}
+	dumper := dump.New(checkinAndCommandService, dumpFile)
+
 	// As usual, handlers are applied from bottom to top:
 	// 1. Extract and verify MDM signature.
 	// 2. Verify signer certificate with CA.
@@ -842,7 +850,7 @@ func registerMDM(
 	// service in the multi-service feature is run to completion _before_ running
 	// the other ones in parallel. This way, subsequent services have access to
 	// the result of the core service, e.g. the device is enrolled, etc.
-	var mdmService nanomdm_service.CheckinAndCommandService = multi.New(mdmLogger, coreMDMService, checkinAndCommandService)
+	var mdmService nanomdm_service.CheckinAndCommandService = multi.New(mdmLogger, coreMDMService, dumper)
 
 	mdmService = certauth.New(mdmService, mdmStorage)
 	var mdmHandler http.Handler = httpmdm.CheckinAndCommandHandler(mdmService, mdmLogger.With("handler", "checkin-command"))
